@@ -1,5 +1,5 @@
 {
-  "name": "gulp",
+  "name": "tutorial-gulp",
   "version": "1.0.0",
   "description": "gulp example",
   "main": "index.js",
@@ -11,5 +11,8 @@
     "demo"
   ],
   "author": "Maks Yaremenko",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "gulp": "github:gulpjs/gulp#4.0"
+  }
 }
