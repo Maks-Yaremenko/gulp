@@ -2,35 +2,30 @@
 
 const gulp = require('gulp');
 
-gulp.task('hello', function (cb) {
-	console.log('hello');
-	cb();
+gulp.task('default', function () {
+	//return gulp.src('source/**/*.*')
+	//return gulp.src('source/**/*.{js,css}')
+	//return gulp.src('{source1, source2}/**/*.{js,css}')
+	//return gulp.src(['source1/**/*.js', 'source2/**/*.css')
+	return gulp.src(['**/**/*.*', '!node_modules/**') // игнорирование
+			.on('data', function (file) {
+				console.log({
+					contents: file.contents,
+					path: 	  file.path,
+					cwd: 	  file.cwd,
+					base: 	  file.base,
+					// path component helpers
+					relative: file.relative,
+					dirname:  file.dirname,  // .../source/1
+					basename: file.basename, // 1.js
+					stem:     file.steam,    // 1
+					extname:  file.extname   // .js
+				});
+			})
+			//.pipe(gulp.dest('assets'));
+
+			.pipe(gulp.dest(function (file) {
+				return file.extname == '.js' ? 'js' :
+					   file.extname == '.css' ? 'css' : 'assets';
+			}))
 });
-
-// или
-
-/*gulp.task('hello');
-function hello(callback) {
-	console.log('hello');
-	callback(); // показать что задача завершена
-}*/
-
-gulp.task('example:promise', function () {
-	return new Promise((resolve, reject) => {
-		//...
-		resolve('result');
-	});
-});
-
-gulp.task('example:stream', function () {
-	// reads all from stream (and throws the data away) and then done
-	return require('fs').createReadStream(__filename);
-});
-
-gulp.task('example:process', function () {
-	// returns child process
-	return require('child_process').spawn('ls', ['./'], {stdio: 'inherit'});
-});
-
-gulp.task('s', gulp.series('hello', 'example:promise', 'example:stream', 'example:process'));
-gulp.task('p', gulp.parallel('hello', 'example:promise', 'example:stream', 'example:process'));
