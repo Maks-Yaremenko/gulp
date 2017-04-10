@@ -1,1 +1,4 @@
+
+# ignored folders
 node_modules/
+public/

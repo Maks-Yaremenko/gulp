@@ -1,31 +1,42 @@
 'use strict';
 
 const gulp = require('gulp');
+const stylus = require('gulp-stylus'); // для конвертации стилус в ксс
+const concat = require('gulp-concat'); // для объединения файлов в 1
+const debug = require('gulp-debug'); // пропускает все через себя и выводит что происходит
+const sourcemaps = require('gulp-sourcemaps'); // отображает что было и что стало
+const gulpIf = require('gulp-if'); // позволяет в зависимости от условия пропускать или запускать поток
+const del = require('del'); // для удаления директорий
 
-gulp.task('default', function () {
-	//return gulp.src('source/**/*.*')
-	//return gulp.src('source/**/*.{js,css}')
-	//return gulp.src('{source1, source2}/**/*.{js,css}')
-	//return gulp.src(['source1/**/*.js', 'source2/**/*.css')
-	return gulp.src(['**/**/*.*', '!node_modules/**') // игнорирование
-			.on('data', function (file) {
-				console.log({
-					contents: file.contents,
-					path: 	  file.path,
-					cwd: 	  file.cwd,
-					base: 	  file.base,
-					// path component helpers
-					relative: file.relative,
-					dirname:  file.dirname,  // .../source/1
-					basename: file.basename, // 1.js
-					stem:     file.steam,    // 1
-					extname:  file.extname   // .js
-				});
-			})
-			//.pipe(gulp.dest('assets'));
+const isDevelopment = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
 
-			.pipe(gulp.dest(function (file) {
-				return file.extname == '.js' ? 'js' :
-					   file.extname == '.css' ? 'css' : 'assets';
-			}))
+// не забывать возвращать результат или колбак
+
+gulp.task('styles', function (callback) {
+
+	//return gulp.src('frontend/**/*.styl')
+	//return gulp.src('frontend/styles/**/main.styl', {base: 'frontend'})
+	return gulp.src('frontend/styles/**/main.styl')
+		.pipe(gulpIf(isDevelopment, sourcemaps.init()))  // file.sourceMap
+		//.pipe(debug({title: 'src'}))
+		.pipe(stylus())
+		//.pipe(debug({title: 'stylus'}))
+		//.pipe(concat('app.css'))
+		//.pipe(debug({title: 'concat'}))
+		.pipe(gulpIf(isDevelopment, sourcemaps.write('.')))
+		.pipe(gulp.dest('public'))
+
 });
+
+gulp.task('clean', function () {
+	return del('public'); // возвр промис и гал понимает что задача завершена
+});
+
+gulp.task('assets', function () {
+	return gulp.src('frontend/assets/**')
+			.pipe(gulp.dest('public'));
+})
+
+gulp.task('build', gulp.series(
+		'clean', 
+		gulp.parallel('styles', 'assets')));
