@@ -10,11 +10,16 @@ const gulp = require('gulp');
 const stylus = require('gulp-stylus'); // для конвертации стилус в ксс
 //const concat = require('gulp-concat'); // для объединения файлов в 1
 const debug = require('gulp-debug'); // пропускает все через себя и выводит что происходит
-const sourcemaps = require('gulp-sourcemaps'); // отображает что было и что стало
+const sourcemaps = require('gulp-sourcemaps'); // карта где искать что было и что стало
 const gulpIf = require('gulp-if'); // позволяет в зависимости от условия пропускать или запускать поток
 const del = require('del'); // для удаления директорий
 //const newer = require('gulp-newer'); // для пропуска в обработку только обновленных файлов
-const browserSync = require('browser-sync').create();
+const browserSync = require('browser-sync').create(); // cинхронизация изменений и обновления в браузере
+const notify = require('gulp-notify'); // вывод ошибок с уведомлением
+const plumber = require('gulp-plumber'); // патчит потоки, можно навесить обработчик ошибок на всю цепочку
+const multipipe = require('multipipe'); // объединяет модули в 1 к которому можно применить обработчик
+const combiner = require('stream-combiner2').obj; // аналог выше, может быть полезно если мы используем условия,
+// в таком случае мы можем передавать несколько обработчиков через combiner или multipipe
 
 const isDevelopment = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
 
@@ -26,15 +31,49 @@ gulp.task('styles', function (callback) {
 
 	//return gulp.src('frontend/**/*.styl')
 	//return gulp.src('frontend/styles/**/main.styl', {base: 'frontend'})
-	return gulp.src('frontend/styles/**/main.styl')
-		.pipe(gulpIf(isDevelopment, sourcemaps.init()))  // file.sourceMap
+
+	//return multipipe(gulp.src('frontend/styles/**/main.styl'),
+	return combiner(gulp.src('frontend/styles/**/main.styl'),
+			gulpIf(isDevelopment, sourcemaps.init()),
+			debug({title: 'src'}),
+			stylus(),
+			gulpIf(isDevelopment, sourcemaps.write('.')),
+			gulp.dest('public')
+	).on('error', notify.onError());
+
+
+
+
+
+//	return gulp.src('frontend/styles/**/main.styl')
+		/*.pipe(plumber({
+			errorHandler: notify.onError(function (err) {
+				return {
+					title: 'Styles',
+					message: err.message
+				};
+			})
+		}))*/
+//		.pipe(gulpIf(isDevelopment, sourcemaps.init()))  // file.sourceMap
 		//.pipe(debug({title: 'src'}))
-		.pipe(stylus()) // кеширует результат после первого запуска
+//		.pipe() // кеширует результат после первого запуска
+		/*.on('error', function (err) {
+			console.log(err.message);
+			this.end()
+		})*/
+		/*.on('error', notify.onError(function (err) {
+			return {
+				title: 'Styles',
+				message: err.message
+			}
+		}))*/
 		//.pipe(debug({title: 'stylus'}))
 		//.pipe(concat('app.css'))
 		//.pipe(debug({title: 'concat'}))
-		.pipe(gulpIf(isDevelopment, sourcemaps.write('.')))
-		.pipe(gulp.dest('public'))
+//		.pipe(gulpIf(isDevelopment, sourcemaps.write('.')))
+//		.pipe(gulp.dest('public'))
+
+
 
 });
 

@@ -3,10 +3,10 @@
 const gulp = require('gulp');
 const concat = require('gulp-concat'); // для объединения файлов в 1
 const debug = require('gulp-debug'); // пропускает все через себя и выводит что происходит
-const autoprefixer = require('gulp-autoprefixer');
+const autoprefixer = require('gulp-autoprefixer'); // ставит ксс префиксы
 const remember = require('gulp-remember'); // добавляет файлы если они были пропущены при контроле версий
 const path = require('path');
-const cached = require('cached');
+const cached = require('cached'); 
 
 gulp.task('styles', function (callback) {
 
