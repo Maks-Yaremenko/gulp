@@ -14,12 +14,14 @@ const isDevelopment = !process.env.NODE_ENV || process.env.NODE_ENV === 'develop
 
 gulp.task('styles', function (callback) {
 
+	console.log(require('stylus/lib/parser').cache);
+
 	//return gulp.src('frontend/**/*.styl')
 	//return gulp.src('frontend/styles/**/main.styl', {base: 'frontend'})
 	return gulp.src('frontend/styles/**/main.styl')
 		.pipe(gulpIf(isDevelopment, sourcemaps.init()))  // file.sourceMap
 		//.pipe(debug({title: 'src'}))
-		.pipe(stylus())
+		.pipe(stylus()) // кеширует результат после первого запуска
 		//.pipe(debug({title: 'stylus'}))
 		//.pipe(concat('app.css'))
 		//.pipe(debug({title: 'concat'}))
@@ -33,10 +35,21 @@ gulp.task('clean', function () {
 });
 
 gulp.task('assets', function () {
-	return gulp.src('frontend/assets/**')
+	return gulp.src('frontend/assets/**', {since: gulp.lastRun('assets')}) // будет проверять файлы которые
+																  // были изменены после последнего запуска
+			.pipe(debug({title: 'assets'}))
 			.pipe(gulp.dest('public'));
 })
 
 gulp.task('build', gulp.series(
 		'clean', 
 		gulp.parallel('styles', 'assets')));
+
+gulp.task('watch', function () {
+	gulp.watch('frontend/styles/**/*.*', gulp.series('styles')); // нужно указывать или серию или параллель
+	gulp.watch('frontend/assets/**/*.*', gulp.series('assets')); 
+});
+
+gulp.task('dev', gulp.series('build', 'watch'));
+
+
